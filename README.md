@@ -1,6 +1,6 @@
 # yakbox 🐂
 
-A lightweight server for hosting Hugging Face models locally. **yakbox** 🐂 supports both Docker-based deployment and local installation, allowing flexibility for various use cases.
+A lightweight server for hosting Hugging Face LLM models locally. **yakbox** 🐂 supports both Docker-based deployment and local installation, allowing flexibility for various use cases.
 
 The project was created to leverage full Hugging Face transformer capabilities (pytorch) with Open WebUI, and at the same time a base to normalize token output via OpenAIs REST spec. The project is set up to take advantage of RTX GPUs.
 
