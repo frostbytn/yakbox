@@ -1,0 +1,58 @@
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    ports:
+      - "4000:4000"
+    environment:
+      - LITELLM_LOG=DEBUG
+      - ENABLE_STREAMING=true
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "8"]
+    networks:
+      - openwebui-network
+
+  openwebui:
+    image: "ghcr.io/open-webui/open-webui:main"
+    ports: 
+      - "3000:8080"
+    volumes:
+      - open-webui:/app/backend/data
+    networks:
+      - openwebui-network
+    environment:
+      - "ENABLE_LITELLM=True"
+      - "LITELLM_PROXY_PORT=4000"
+      - "LITELLM_PROXY_HOST=litellm"
+      - "ENABLE_STREAMING=True"
+
+  yakbox:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: yakbox
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: ["gpu"]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HF_TOKEN=${HF_TOKEN}
+
+    # mounts the windows cache directory for hugging face models - change if you are not on windows
+    volumes:
+     # - ${HOME}/.cache:/root/.cache
+      - ${USERPROFILE}/.cache:/root/.cache
+
+networks:
+  openwebui-network:
+    driver: bridge
+
+volumes:
+  open-webui:

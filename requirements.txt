@@ -1,0 +1,13 @@
+torch
+torchvision
+torchaudio
+transformers
+fastapi[all]
+uvicorn
+sentencepiece
+protobuf
+bitsandbytes
+scipy
+tokenizers
+accelerate
+datasets

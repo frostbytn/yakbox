@@ -1,0 +1,7 @@
+model_list:
+  - model_name: "local-deploy"
+    litellm_params:
+      model: local-deploy
+      api_base: http://host.docker.internal:8000
+      api_key: None
+      custom_llm_provider: openai
