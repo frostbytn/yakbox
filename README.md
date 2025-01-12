@@ -62,7 +62,7 @@ There are **two ways** to run the server:
     `pip install -r requirements.txt`
 2. **Update `docker-compose.yml`**: If you're running the server locally, comment out the `server_slim` service in the `docker-compose.yml` file to avoid Docker attempting to spin up the server. 
 3. **Run the Server**:
-    `uvicorn server:app --host 0.0.0.0 --port 8000`
+    `uvicorn yakbox:app --host 0.0.0.0 --port 8000`
       
 ### Running with Docker 📦
 
