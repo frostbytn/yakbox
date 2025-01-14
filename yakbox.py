@@ -36,6 +36,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+yakky = r"""
+  ___    ___  ________   ___  __     ________   ________      ___    ___ 
+ |\  \  /  /||\   __  \ |\  \|\  \  |\   __  \ |\   __  \    |\  \  /  /|
+ \ \  \/  / /\ \  \|\  \\ \  \/  /|_\ \  \|\ /_\ \  \|\  \   \ \  \/  / /
+  \ \    / /  \ \   __  \\ \   ___  \\ \   __  \\ \  \\\  \   \ \    / / 
+   \/  /  /    \ \  \ \  \\ \  \\ \  \\ \  \|\  \\ \  \\\  \   /     \/  
+ __/  / /       \ \__\ \__\\ \__\\ \__\\ \_______\\ \_______\ /  /\   \  
+|\___/ /         \|__|\|__| \|__| \|__| \|_______| \|_______|/__/ /\ __\ 
+\|___|/                                                      |__|/ \|__| 
+"""
+
 class ModelManager:
     """Manages the model and tokenizer lifecycle and provides simple tokenize/decode methods."""
     def __init__(self, model_name: str, device: str):
@@ -70,16 +81,6 @@ class PromptGenerator:
         - You are a helpful and knowledgeable assistant.
         - Use </s> to indicate the end of your thought.
         </GENERAL>
-
-        <EXAMPLES>
-        User: Hello, how are you?
-        Assistant: I am doing well, thank you.
-        </s>
-
-        User: What is the capital of France?
-        Assistant: Paris is the capital of France.
-        </s>
-        </EXAMPLES>
         """
     @staticmethod
     def generate(messages: List["Message"]) -> str:
@@ -206,6 +207,8 @@ model_manager = ModelManager(MODEL_NAME, DEVICE)
 prompt_generator = PromptGenerator()
 stop_token_ids = model_manager.tokenizer.convert_tokens_to_ids(STOP_TOKENS)
 response_streamer = ResponseStreamer(model_manager, stop_token_ids)
+
+logging.info("\n%s", yakky)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
