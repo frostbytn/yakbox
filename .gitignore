@@ -1,0 +1,69 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# C extensions
+*.so
+
+# Virtual environments
+env/
+venv/
+ENV/
+*.env
+
+# Environment variables file
+*.env
+
+# Distribution / packaging
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Pytest cache
+.pytest_cache/
+
+# Coverage reports
+.coverage
+*.cover
+coverage.xml
+htmlcov/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs and database files
+*.log
+*.sqlite3
+
+# Docker-related files
+*.dockerignore
+docker-compose.override.yml
+!docker-compose.yml
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Editor-specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python IDE environments
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Ignore compiled models
+models/__pycache__/
+services/__pycache__/
