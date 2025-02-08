@@ -55,7 +55,7 @@ def extract_parameters(params: Dict[str, Any], tokenizer: AutoTokenizer) -> Dict
     return {
         "max_new_tokens": params.get("max_tokens", config.getint("parameters", "max_tokens")),
         "temperature": params.get("temperature", config.getfloat("parameters", "temperature")),
-        "pad_token_id": tokenizer.eos_token_id,
+        "pad_token_id": tokenizer.pad_token_id,
         "repetition_penalty": config.getfloat("parameters", "repetition_penalty"),
         "top_k": config.getint("parameters", "top_k"),
         "top_p": config.getfloat("parameters", "top_p"),
@@ -84,7 +84,11 @@ def generate_model_output(prompt: str, params: Dict[str, Any], model_manager: Mo
     """Generate model output without streaming."""
     inputs = model_manager.tokenize(prompt)
     with torch.no_grad():
-        output = model_manager.model.generate(inputs["input_ids"], **params)
+        output = model_manager.model.generate(
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
+            **params
+        )
     return model_manager.decode(output[0])
 
 model_manager = ModelManager(MODEL_NAME, DEVICE)
