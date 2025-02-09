@@ -1,5 +1,4 @@
 import configparser
-import json
 import logging
 import uuid
 from time import time
@@ -13,8 +12,7 @@ from services.model_manager import ModelManager
 from services.prompt_generator import PromptGenerator
 from services.response_streamer import ResponseStreamer
 from models.chat_completion_request import ChatCompletionRequest
-
-import re
+from services.function_call_parser import parse_function_call
 
 logging.basicConfig(level=logging.INFO)
 
@@ -130,19 +128,9 @@ async def chat_completions(request: ChatCompletionRequest):
     prompt = f'<s><INST>{prompt_generator.generate(request.messages, request.tools)}</INST>'
     generated_text = generate_model_output(prompt, params, model_manager)
     
-    # Extract potential tool call from the generated content
-    # Improved tool call extraction
-    tool_call = None
-    try:
-        # Use a refined regex to match JSON blocks, handling possible variations in content formatting
-        match = re.search(r"```json\s*({.*?})\s*```", generated_text, re.DOTALL)
-        if match:
-            # Extract the JSON string
-            tool_call_json = match.group(1).strip()
-            tool_call = json.loads(tool_call_json)
-            logging.info("Tool call detected and parsed successfully.")
-    except (ValueError, json.JSONDecodeError) as e:
-        logging.warning(f"Failed to parse tool call from content: {e}")
+    tool_call = parse_function_call(generated_text)
+    if tool_call:
+        logging.info("Tool call detected and parsed successfully.")
     
     response = build_response(generated_text, tool_call)
     return JSONResponse(response)

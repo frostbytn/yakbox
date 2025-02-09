@@ -9,8 +9,7 @@ from typing import Any, AsyncGenerator, Dict, Optional
 from transformers import (StoppingCriteriaList,TextIteratorStreamer)
 from services.prompt_generator import PromptGenerator
 from models.stop_on_tokens import StopOnTokens
-
-import re
+from services.function_call_parser import parse_function_call
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -18,12 +17,6 @@ config.read("config.ini")
 MODEL_NAME: str = config["model"]["name"]
 
 class ResponseStreamer:
-    """
-    Streams tokens in a form phidata's `OpenAIChat` can recognize:
-    - For normal text: { "choices": [{"delta": {"role": "assistant", "content": "..."} }] }
-    - For a function call: { "choices": [{"delta": {"role": "assistant", "tool_calls": [...]}}] }
-    """
-
     def __init__(self, model_manager, stop_token_ids):
         self.model_manager = model_manager
         self.stop_token_ids = stop_token_ids
@@ -66,21 +59,9 @@ class ResponseStreamer:
         function_call_detected = None
 
         async for token in self.async_token_generator(streamer):
-            logging.info(f"Token: {token}")
             token_buffer += token
-
-            # Check for a function call block: ```json { "function":"...", "arguments":{...}} ```
-            matches = re.findall(r"```json\s*({.*?})\s*```", token_buffer, re.DOTALL)
-            if matches:
-                try:
-                    parsed_json = json.loads(matches[-1].strip())
-                    if "function" in parsed_json and "arguments" in parsed_json:
-                        function_call_detected = parsed_json
-                    else:
-                        logging.warning("JSON block didn't have the expected keys.")
-                except (ValueError, json.JSONDecodeError) as e:
-                    logging.warning(f"Failed to parse function call JSON: {e}")
-
+            if not function_call_detected:
+                function_call_detected = parse_function_call(token_buffer)
             if not function_call_detected:
                 yield self.format_chunk(
                     role="assistant",
@@ -92,6 +73,7 @@ class ResponseStreamer:
                 pass
 
         thread.join()
+        logging.info(token_buffer)
         if function_call_detected:
             logging.info(f"Function call detected: {function_call_detected}")
             yield self.format_tool_calls_chunk(function_call_detected)
@@ -110,17 +92,6 @@ class ResponseStreamer:
             yield token
 
     def format_tool_calls_chunk(self, function_call: Dict[str, Any]) -> str:
-        """
-        Create a chunk with "tool_calls" so phidata sees it as a function call.
-        Example structure:
-          "tool_calls": [
-            {
-              "id": "...",
-              "type": "function_call",
-              "function": { "name": "...", "arguments": "..." }
-            }
-          ]
-        """
         name = function_call.get("function", "unknown_function")
         args_str = json.dumps(function_call.get("arguments", {}))
         tool_call_id = str(uuid.uuid4())
@@ -154,7 +125,6 @@ class ResponseStreamer:
         }
 
         json_str = json.dumps(chunk)
-        logging.info(f"data: {json_str}")
         return f"data: {json_str}\n\n"
 
     def format_chunk(
@@ -188,5 +158,4 @@ class ResponseStreamer:
             chunk["choices"][0]["delta"]["content"] = content
 
         json_str = json.dumps(chunk)
-        logging.info(f"data: {json_str}")
         return f"data: {json_str}\n\n"

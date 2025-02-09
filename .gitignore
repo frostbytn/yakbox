@@ -67,3 +67,4 @@ Thumbs.db
 # Ignore compiled models
 models/__pycache__/
 services/__pycache__/
+.aider*
