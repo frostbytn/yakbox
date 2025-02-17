@@ -22,6 +22,7 @@ config.read("config.ini")
 MODEL_NAME: str = config["model"]["name"]
 USE_CUDA: bool = config.getboolean("device", "use_cuda")
 DEVICE: str = "cuda" if USE_CUDA and torch.cuda.is_available() else "cpu"
+logging.info(f"Using device: {DEVICE}")
 STOP_TOKENS: List[str] = config["tokens"]["stop_tokens"].split(",")
 
 app = FastAPI()
@@ -81,10 +82,12 @@ def build_response(content: str, tool_call: Optional[Dict[str, Any]] = None) -> 
 def generate_model_output(prompt: str, params: Dict[str, Any], model_manager: ModelManager) -> str:
     """Generate model output without streaming."""
     inputs = model_manager.tokenize(prompt)
+    inputs = {key: value.to(model_manager.model.device) for key, value in inputs.items()}  
+    
     with torch.no_grad():
         output = model_manager.model.generate(
             input_ids=inputs["input_ids"],
-            attention_mask=inputs["attention_mask"],
+            attention_mask=inputs.get("attention_mask"),
             **params
         )
     return model_manager.decode(output[0])

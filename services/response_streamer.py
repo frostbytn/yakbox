@@ -32,7 +32,6 @@ class ResponseStreamer:
         Once a function call is detected, emits a chunk with "tool_calls".
         """
         prompt = f'<s><INST>{PromptGenerator.generate(messages, tools)}</INST>'
-        logging.info(f"Prompt: {prompt}")
 
         inputs = self.model_manager.tokenize(prompt)
         streamer = TextIteratorStreamer(
@@ -73,7 +72,6 @@ class ResponseStreamer:
                 pass
 
         thread.join()
-        logging.info(token_buffer)
         if function_call_detected:
             logging.info(f"Function call detected: {function_call_detected}")
             yield self.format_tool_calls_chunk(function_call_detected)
