@@ -40,9 +40,10 @@ class ModelManager:
 
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            torch_dtype=torch.float32,
+            torch_dtype=torch.float16,
             # load_in_4bit=load_in_4bit,
-            quantization_config=quantization_config
+            quantization_config=quantization_config,
+            device_map="auto" 
         )
 
         # self.tokenizer.pad_token = self.tokenizer.eos_token
